@@ -28,11 +28,15 @@ node {
           az account set -s $AZURE_SUBSCRIPTION_ID
         '''
       }
-      // get publish settings
-      def pubProfilesJson = sh script: "az webapp deployment list-publishing-profiles -g $resourceGroup -n $webAppName", returnStdout: true
-      def ftpProfile = getFtpPublishProfile pubProfilesJson
-      // upload package
-      sh "curl -T target/calculator-1.0.war $ftpProfile.url/webapps/ROOT.war -u '$ftpProfile.username:$ftpProfile.password'"
+      // deploy WAR package to Azure Web App
+sh """
+  az webapp deploy \
+    --resource-group ${resourceGroup} \
+    --name ${webAppName} \
+    --src-path target/calculator-1.0.war \
+    --type war \
+    --timeout 600000
+"""
       // log out
       sh 'az logout'
     }
